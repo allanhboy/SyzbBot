@@ -6,8 +6,8 @@ import Layout from './components/Layout';
 import Loading from './components/Loading';
 
 export const routes = <Layout>
-	<Route exact path='/' component={Loadable({
-		loader: () => import('./components/Home'),
-		loading: Loading
-	})} />
+    <Route exact path='/:tag' component={Loadable({
+        loader: () => import('./components/Home'),
+        loading: Loading
+    })} />
 </Layout>;

@@ -45,6 +45,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="JiebaNet.Analyser">
+      <HintPath>..\dll\JiebaNet.Analyser.dll</HintPath>
+    </Reference>
+    <Reference Include="JiebaNet.Segmenter">
+      <HintPath>..\dll\JiebaNet.Segmenter.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <TypeScriptCompile Include="ClientApp\routes.jsx" />
   </ItemGroup>
 

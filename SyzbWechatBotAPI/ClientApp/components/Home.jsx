@@ -1,8 +1,18 @@
 import * as React from 'react';
-import HelloMessage from "./HelloMessage";
+import PageHeader from "react-bootstrap/lib/PageHeader";
+import NewsList from "./NewsList";
+
 
 export default class Home extends React.Component {
-	render() {
-		return <HelloMessage message="Bruke.cui1"/>;
-	}
+    render() {
+        const { match: { params: { tag } } } = this.props;
+        return (
+            <div>
+                <PageHeader>
+                    <img src="/images/logo.png" />
+                </PageHeader>
+                <NewsList tag={tag} />
+            </div>
+        );
+    }
 }

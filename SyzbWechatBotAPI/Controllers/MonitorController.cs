@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Hangfire;
+using JiebaNet.Analyser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SyzbWechatBotAPI.Jobs;
@@ -30,8 +31,15 @@ namespace SyzbWechatBotAPI.Controllers
 			{
 				await _connection.ExecuteAsync(
 					@"INSERT INTO [dbo].[Monitor]([Type],[Name],[Remarks]) VALUES(@Type, @Name, @Remarks)", new { model.Type, model.Name, Remarks = model.NickName });
-
-				BackgroundJob.Enqueue<MonitorJob>(job => job.Monitor(model.Name, null));
+			    var name = model.Name;
+			    if (model.Type == MonitorType.公司)
+			    {
+			        var extractor = new TfidfExtractor();
+			        var keywords = extractor.ExtractTags(model.Name).ToArray();
+			        name = keywords[0];
+			    }
+			    
+                BackgroundJob.Enqueue<MonitorJob>(job => job.Monitor(name, null));
 
 				return $"@{model.NickName}:监控设置成功.";
 			}
@@ -39,9 +47,15 @@ namespace SyzbWechatBotAPI.Controllers
 			{
 				await _connection.ExecuteAsync("UPDATE [dbo].[Monitor] SET [Remarks]=[Remarks]+','+@NickName WHERE [Id]=@Id",
 					new { monitor.Id, model.NickName });
-
-				var news = await _connection.QueryAsync("SELECT TOP 5 * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword",
-					new { Keyword = model.Name });
+			    var name = model.Name;
+			    if (model.Type == MonitorType.公司)
+			    {
+			        var extractor = new TfidfExtractor();
+			        var keywords = extractor.ExtractTags(model.Name).ToArray();
+			        name = keywords[0];
+			    }
+                var news = await _connection.QueryAsync("SELECT TOP 5 * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword",
+					new { Keyword = name });
 
 				var enumerable = news as dynamic[] ?? news.ToArray();
 				if (enumerable.Any())
