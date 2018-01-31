@@ -34,7 +34,7 @@ export default class NewsList extends React.Component {
                                 <a href={news.url}>
                                     <Media.Body>
                                         <Media.Heading>{news.title}</Media.Heading>
-                                        <p>{news.text}</p>
+                                        <p>{news.summary}</p>
                                         <Label bsStyle="info">{news.time}</Label>
                                     </Media.Body>
                                 </a>

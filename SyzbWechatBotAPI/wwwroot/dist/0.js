@@ -719,7 +719,7 @@ var NewsList = function (_React$Component) {
                                         React.createElement(
                                             'p',
                                             null,
-                                            news.text
+                                            news.summary
                                         ),
                                         React.createElement(
                                             _Label2.default,
