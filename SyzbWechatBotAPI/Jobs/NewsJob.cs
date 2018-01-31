@@ -37,32 +37,43 @@ namespace SyzbWechatBotAPI.Jobs
                 var stream = await response.Content.ReadAsStreamAsync();
                 byte[] bytes = new byte[stream.Length];
                 await stream.ReadAsync(bytes, 0, bytes.Length);
-
-                var html = Encoding.UTF8.GetString(bytes);
-                var document = new HtmlDocument { OptionAutoCloseOnEnd = true };
-
-                document.LoadHtml(html);
-                foreach (var selectNode in document.DocumentNode.SelectNodes("//meta"))
+                var isUTF8 = IsTextUTF8(ref bytes);
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                Encoding encoding;
+                if (isUTF8)
                 {
-                    if (selectNode.Attributes["http-equiv"]?.Value == "Content-Type")
-                    {
-                        var contentType = selectNode.Attributes["content"].Value;
-                        var match = Regex.Match(contentType, "charset=(?<encoding>[a-zA-Z0-9\\-]*)");
-                        if (match.Success)
-                        {
-                            var encodingName = match.Groups["encoding"].Value;
-                            html = Encoding.GetEncoding(encodingName).GetString(bytes);
-                            break;
-                        }
-                    }
-
-                    if (selectNode.Attributes["charset"] != null)
-                    {
-                        var encodingName = selectNode.Attributes["charset"].Value;
-                        html = Encoding.GetEncoding(encodingName).GetString(bytes);
-                        break;
-                    }
+                    encoding = Encoding.UTF8;
                 }
+                else
+                {
+                    encoding = Encoding.GetEncoding("GBK");
+                }
+
+                var html = encoding.GetString(bytes);
+                //var document = new HtmlDocument { OptionAutoCloseOnEnd = true };
+
+                //document.LoadHtml(html);
+                //foreach (var selectNode in document.DocumentNode.SelectNodes("//meta"))
+                //{
+                //    if (selectNode.Attributes["http-equiv"]?.Value == "Content-Type")
+                //    {
+                //        var contentType = selectNode.Attributes["content"].Value;
+                //        var match = Regex.Match(contentType, "charset=(?<encoding>[a-zA-Z0-9\\-]*)");
+                //        if (match.Success)
+                //        {
+                //            var encodingName = match.Groups["encoding"].Value;
+                //            html = Encoding.GetEncoding(encodingName).GetString(bytes);
+                //            break;
+                //        }
+                //    }
+
+                //    if (selectNode.Attributes["charset"] != null)
+                //    {
+                //        var encodingName = selectNode.Attributes["charset"].Value;
+                //        html = Encoding.GetEncoding(encodingName).GetString(bytes);
+                //        break;
+                //    }
+                //}
                 //document.LoadHtml(html);
                 //using (var ms = new MemoryStream())
                 //using (StreamWriter sw = new StreamWriter(ms, Encoding.UTF8))
@@ -77,10 +88,6 @@ namespace SyzbWechatBotAPI.Jobs
                 //    //}
                 //}
 
-
-
-
-
                 //var html = await response.Content.ReadAsStringAsync();
                 if (string.IsNullOrEmpty(html))
                     return;
@@ -93,7 +100,7 @@ namespace SyzbWechatBotAPI.Jobs
                     var s = builder.BuildDocument(html);
                     var result = transcoder.Transcode(input);
 
-
+                    var document = new HtmlDocument { OptionAutoCloseOnEnd = true };
                     document.LoadHtml(result.ExtractedContent);
                     var node = document.DocumentNode.SelectSingleNode("//div/div/div/div");
                     var text = node.InnerText.Trim('\r', '\n', ' ', '\t');
@@ -109,6 +116,73 @@ namespace SyzbWechatBotAPI.Jobs
                     context.WriteLine(e);
                 }
             }
+        }
+
+        private bool IsTextUTF8(ref byte[] inputStream)
+        {
+            int encodingBytesCount = 0;
+            bool allTextsAreASCIIChars = true;
+
+            for (int i = 0; i < inputStream.Length; i++)
+            {
+                byte current = inputStream[i];
+
+                if ((current & 0x80) == 0x80)
+                {
+                    allTextsAreASCIIChars = false;
+                }
+                // First byte
+                if (encodingBytesCount == 0)
+                {
+                    if ((current & 0x80) == 0)
+                    {
+                        // ASCII chars, from 0x00-0x7F
+                        continue;
+                    }
+
+                    if ((current & 0xC0) == 0xC0)
+                    {
+                        encodingBytesCount = 1;
+                        current <<= 2;
+
+                        // More than two bytes used to encoding a unicode char.
+                        // Calculate the real length.
+                        while ((current & 0x80) == 0x80)
+                        {
+                            current <<= 1;
+                            encodingBytesCount++;
+                        }
+                    }
+                    else
+                    {
+                        // Invalid bits structure for UTF8 encoding rule.
+                        return false;
+                    }
+                }
+                else
+                {
+                    // Following bytes, must start with 10.
+                    if ((current & 0xC0) == 0x80)
+                    {
+                        encodingBytesCount--;
+                    }
+                    else
+                    {
+                        // Invalid bits structure for UTF8 encoding rule.
+                        return false;
+                    }
+                }
+            }
+
+            if (encodingBytesCount != 0)
+            {
+                // Invalid bits structure for UTF8 encoding rule.
+                // Wrong following bytes count.
+                return false;
+            }
+
+            // Although UTF8 supports encoding for ASCII chars, we regard as a input stream, whose contents are all ASCII as default encoding.
+            return !allTextsAreASCIIChars;
         }
     }
 }

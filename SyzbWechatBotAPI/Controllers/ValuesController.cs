@@ -7,6 +7,7 @@ using JiebaNet.Analyser;
 using JiebaNet.Segmenter;
 using Microsoft.AspNetCore.Mvc;
 using SyzbWechatBotAPI.Jobs;
+using SyzbWechatBotAPI.Models;
 
 namespace SyzbWechatBotAPI.Controllers
 {
@@ -18,13 +19,13 @@ namespace SyzbWechatBotAPI.Controllers
         public IEnumerable<string> Get()
         {
             //var tz = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
-            //BackgroundJob.Enqueue<NewsJob>(job => job.Dowload("http://www.liuzhou.gov.cn/xwzx/qxdt/lcx_26407/201711/t20171110_1047127.html", null));
+            BackgroundJob.Enqueue<MonitorJob>(job => job.Monitor("日昌升", null));
 
-            var text = "日昌升集团有限公司";
-            var extractor = new TfidfExtractor();
-            var keywords = extractor.ExtractTags(text);
+            //var text = "日昌升集团有限公司";
+            //var extractor = new TfidfExtractor();
+            //var keywords = extractor.ExtractTags(text);
 
-            return keywords;
+            yield return "ok";
 
         }
 
