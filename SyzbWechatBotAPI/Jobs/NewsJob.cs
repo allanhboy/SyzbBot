@@ -112,7 +112,7 @@ namespace SyzbWechatBotAPI.Jobs
                     await _connection.ExecuteAsync(cmdText, new { Html = html, Text = text, Url = url });
 
                     await _connection.ExecuteAsync(
-                        @"UPDATE a SET a.[HadNew]=1 FROM [dbo].[Monitor] a JOIN [dbo].[BaiduNews] b ON a.[Tag]=b.[Keyword] WHERE b.[Url]=@Url",
+                        @"UPDATE a SET a.[NewsCount]=a.[NewsCount]+1 FROM [dbo].[Monitor] a JOIN [dbo].[BaiduNews] b ON a.[Tag]=b.[Keyword] WHERE b.[Url]=@Url",
                         new { Url = url });
                 }
                 catch (Exception e)

@@ -55,7 +55,7 @@ namespace SyzbWechatBotAPI.Controllers
                     var keywords = extractor.ExtractTags(model.Name).ToArray();
                     name = keywords[0];
                 }
-                var news = await _connection.QueryAsync<BaiduNews>("SELECT TOP 5 * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword",
+                var news = await _connection.QueryAsync<BaiduNews>("SELECT TOP 5 * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword ORDER BY [CreateDate] DESC",
                     new { Keyword = name });
 
                 var enumerable = news as BaiduNews[] ?? news.ToArray();
@@ -71,6 +71,32 @@ namespace SyzbWechatBotAPI.Controllers
                 {
                     return $"@{model.NickName}:{model.Name}目前没有最新舆情!";
                 }
+            }
+        }
+
+        [HttpGet]
+        public async Task<string> Get()
+        {
+            var monitor = await _connection.QueryFirstOrDefaultAsync<Monitor>("SELECT * FROM [dbo].[Monitor] WHERE [NewsCount]>0");
+            if (monitor == null)
+                return "";
+
+            var news = await _connection.QueryAsync<BaiduNews>(
+                $"SELECT TOP {monitor.NewsCount} * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword ORDER BY [CreateDate] DESC",
+                new { Keyword = monitor.Tag });
+
+            var enumerable = news as BaiduNews[] ?? news.ToArray();
+            if (enumerable.Any())
+            {
+                await _connection.ExecuteAsync("UPDATE [dbo].[BaiduNews] SET [IsPushed]=1 WHERE Id=@Id",
+                    enumerable.Where(p => p.IsPushed == false).Select(p => new { p.Id }));
+                var index = 1;
+                string content = enumerable.Aggregate("", (current, art) => current + $"{index++}.{art.Title}\r\n");
+                return $"{monitor.Remarks}:{monitor.Name}最新舆情:\r\n{content}点击查看更多详情http://localhost:65064/{HttpUtility.UrlEncode(monitor.Tag)}";
+            }
+            else
+            {
+                return "";
             }
         }
     }

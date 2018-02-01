@@ -10,6 +10,6 @@ namespace SyzbWechatBotAPI.Models
         public string Tag { get; set; }
         public DateTime CreateTime { get; set; }
         public string Remarks { get; set; }
-        public bool HadNew { get; set; }
+        public int NewsCount { get; set; }
     }
 }
