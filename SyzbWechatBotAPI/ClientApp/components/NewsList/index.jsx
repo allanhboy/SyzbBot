@@ -3,6 +3,7 @@ import * as React from 'react';
 import fetch from "isomorphic-fetch";
 import Media from "react-bootstrap/lib/Media";
 import Label from 'react-bootstrap/lib/Label';
+import { Link } from 'react-router-dom'
 
 export default class NewsList extends React.Component {
     constructor() {
@@ -12,7 +13,7 @@ export default class NewsList extends React.Component {
     }
 
     componentDidMount() {
-        fetch(`/api/News?tag=${this.props.tag}`)
+        fetch(`/api/News/Tag/${this.props.tag}`)
             .then(response => response.json())
             .then(json => {
                 this.setState({
@@ -31,13 +32,13 @@ export default class NewsList extends React.Component {
                     <Media.List>
                         {newsList.map((news, index) => (
                             <Media.ListItem key={index}>
-                                <a href={news.url}>
+                                <Link to={`/news/${news.id}`}>
                                     <Media.Body>
                                         <Media.Heading>{news.title}</Media.Heading>
                                         <p>{news.summary}</p>
                                         <Label bsStyle="info">{news.time}</Label>
                                     </Media.Body>
-                                </a>
+                                </Link>
                             </Media.ListItem>
                         ))}
                     </Media.List>

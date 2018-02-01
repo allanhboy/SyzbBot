@@ -12,21 +12,29 @@ using SyzbWechatBotAPI.Models;
 
 namespace SyzbWechatBotAPI.Controllers
 {
-	[Route("api/News")]
-	public class NewsController : Controller
-	{
-		private readonly IDbConnection _connection;
+    [Route("api/News")]
+    public class NewsController : Controller
+    {
+        private readonly IDbConnection _connection;
 
-		public NewsController(IDbConnection connection)
-		{
-			_connection = connection;
-		}
+        public NewsController(IDbConnection connection)
+        {
+            _connection = connection;
+        }
 
-		[HttpGet]
-		public async Task<IEnumerable<BaiduNews>> Get(string tag)
-		{
-            var list = await _connection.QueryAsync<BaiduNews>("SELECT * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword", new {Keyword = tag});
-			return　list;
-		}
-	}
+        [HttpGet]
+        [Route("Tag/{tag}")]
+        public async Task<IEnumerable<BaiduNews>> GetTag(string tag)
+        {
+            var list = await _connection.QueryAsync<BaiduNews>("SELECT * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword", new { Keyword = tag });
+            return list;
+        }
+
+        [HttpGet]
+        public async Task<BaiduNews> Get(long id)
+        {
+            var news = await _connection.QuerySingleOrDefaultAsync<BaiduNews>("SELECT * FROM [dbo].[BaiduNews] WHERE [Id]=@Id", new { Id = id });
+            return news;
+        }
+    }
 }
