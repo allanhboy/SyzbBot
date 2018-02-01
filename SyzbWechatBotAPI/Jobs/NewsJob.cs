@@ -110,6 +110,10 @@ namespace SyzbWechatBotAPI.Jobs
                     const string cmdText = @"UPDATE [dbo].[BaiduNews] SET [Html]=@Html,[Text]=@Text WHERE [Url]=@Url";
 
                     await _connection.ExecuteAsync(cmdText, new { Html = html, Text = text, Url = url });
+
+                    await _connection.ExecuteAsync(
+                        @"UPDATE a SET a.[HadNew]=1 FROM [dbo].[Monitor] a JOIN [dbo].[BaiduNews] b ON a.[Tag]=b.[Keyword] WHERE b.[Url]=@Url",
+                        new { Url = url });
                 }
                 catch (Exception e)
                 {

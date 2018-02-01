@@ -13,5 +13,6 @@ namespace SyzbWechatBotAPI.Models
         public string Time { get; set; }
         public string Text { get; set; }
         public string Summary { get; set; }
+        public bool IsPushed { get; set; }
     }
 }
