@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyzbWechatBotAPI", "SyzbWechatBotAPI\SyzbWechatBotAPI.csproj", "{FF046135-AE41-4BAE-804A-491095CCC5CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WechatBot", "WechatBot\WechatBot.csproj", "{1124BB41-802D-4DFF-86C5-FA3648B84B0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FF046135-AE41-4BAE-804A-491095CCC5CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF046135-AE41-4BAE-804A-491095CCC5CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF046135-AE41-4BAE-804A-491095CCC5CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1124BB41-802D-4DFF-86C5-FA3648B84B0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1124BB41-802D-4DFF-86C5-FA3648B84B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1124BB41-802D-4DFF-86C5-FA3648B84B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1124BB41-802D-4DFF-86C5-FA3648B84B0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
