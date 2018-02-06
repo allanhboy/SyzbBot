@@ -25,13 +25,11 @@ namespace SyzbWechatBotAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<string> Post(MonitorRequestModel model)
+        public async Task<string> Post([FromBody]MonitorRequestModel model)
         {
             var monitor = await _connection.QuerySingleOrDefaultAsync<Monitor>("SELECT * FROM [dbo].[Monitor] WHERE [Name]=@Name", new { model.Name });
             if (monitor == null)
             {
-                await _connection.ExecuteAsync(
-                    @"INSERT INTO [dbo].[Monitor]([Type],[Name],[Remarks]) VALUES(@Type, @Name, @Remarks)", new { model.Type, model.Name, Remarks = model.NickName });
                 var name = model.Name;
                 if (model.Type == MonitorType.公司)
                 {
@@ -39,6 +37,10 @@ namespace SyzbWechatBotAPI.Controllers
                     var keywords = extractor.ExtractTags(model.Name).ToArray();
                     name = keywords[0];
                 }
+
+                await _connection.ExecuteAsync(
+                    @"INSERT INTO [dbo].[Monitor]([Type],[Name],[Tag],[Remarks]) VALUES(@Type, @Name, @Tag, @Remarks)", new { model.Type, model.Name, Tag = name, Remarks = model.NickName });
+
 
                 BackgroundJob.Enqueue<MonitorJob>(job => job.Monitor(name, null));
 
@@ -65,7 +67,7 @@ namespace SyzbWechatBotAPI.Controllers
                     //    enumerable.Where(p => p.IsPushed == false).Select(p => new { p.Id }));
                     var index = 1;
                     string content = enumerable.Aggregate("", (current, art) => current + $"{index++}.{art.Title}\r\n");
-                    return $"@{model.NickName}:{model.Name}最新舆情:\r\n{content}点击查看更多详情http://localhost:65064/{HttpUtility.UrlEncode(model.Name)}";
+                    return $"@{model.NickName}:{model.Name}最新舆情:\r\n{content}点击查看更多详情http://syzb.qianjifang.com.cn/{HttpUtility.UrlEncode(name)}";
                 }
                 else
                 {
@@ -75,11 +77,11 @@ namespace SyzbWechatBotAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<string> Get()
+        public async Task<MonitorResponseModel> Get()
         {
             var monitor = await _connection.QueryFirstOrDefaultAsync<Monitor>("SELECT * FROM [dbo].[Monitor] WHERE [NewsCount]>0");
             if (monitor == null)
-                return "";
+                return null;
 
             var news = await _connection.QueryAsync<BaiduNews>(
                 $"SELECT TOP {monitor.NewsCount} * FROM [dbo].[BaiduNews] WHERE [Keyword]=@Keyword ORDER BY [CreateDate] DESC",
@@ -90,13 +92,18 @@ namespace SyzbWechatBotAPI.Controllers
             {
                 await _connection.ExecuteAsync("UPDATE [dbo].[BaiduNews] SET [IsPushed]=1 WHERE Id=@Id",
                     enumerable.Where(p => p.IsPushed == false).Select(p => new { p.Id }));
+                await _connection.ExecuteAsync("UPDATE [dbo].[Monitor] SET [NewsCount]=[NewsCount]-@Count WHERE [Id]=@Id", new { Count = monitor.NewsCount, monitor.Id });
                 var index = 1;
                 string content = enumerable.Aggregate("", (current, art) => current + $"{index++}.{art.Title}\r\n");
-                return $"{monitor.Remarks}:{monitor.Name}最新舆情:\r\n{content}点击查看更多详情http://localhost:65064/{HttpUtility.UrlEncode(monitor.Tag)}";
+                return new MonitorResponseModel
+                {
+                    UserName = monitor.Remarks.Split(','),
+                    Content = $"{monitor.Remarks}:{monitor.Name}最新舆情:\r\n{content}点击查看更多详情http://syzb.qianjifang.com.cn/{HttpUtility.UrlEncode(monitor.Tag)}"
+                };
             }
             else
             {
-                return "";
+                return null;
             }
         }
     }

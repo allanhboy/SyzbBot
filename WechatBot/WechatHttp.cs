@@ -55,7 +55,7 @@ namespace WxBot
 
 		public static async Task<string> PostAsJson(string url, string data)
 		{
-			return await Post(url, data, "application/json; charset=UTF-8");
+			return await Post(url, data, "application/json");
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace SyzbWechatBotAPI.Jobs
 
             foreach (var element in elements)
             {
-                var title = element.SelectSingleNode("h3[@class='c-title']/a/text()").InnerText;
+                var title = element.SelectSingleNode("h3[@class='c-title']/a/text()").InnerText.Replace("\r", "").Replace("\n", "");
                 var url = element.SelectSingleNode("h3[@class='c-title']/a").Attributes["href"].Value;
                 //var author = element.SelectSingleNode(".//div/p[@class='c-author']/text()").InnerText;
                 var summary_element = element.SelectSingleNode(".//div[@class='c-summary c-row ']");
